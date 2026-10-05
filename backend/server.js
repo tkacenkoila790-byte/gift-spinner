@@ -14,7 +14,6 @@ app.post('/api/scan', async (req, res) => {
   if (!address) return res.status(400).json({ error: 'no address' });
 
   try {
-    // Параллельно тянем NFT и инфу об аккаунте
     const [nftsRes, accRes] = await Promise.all([
       fetch(TONAPI + '/accounts/' + encodeURIComponent(address) + '/nfts'),
       fetch(TONAPI + '/accounts/' + encodeURIComponent(address)),
@@ -34,7 +33,7 @@ app.post('/api/scan', async (req, res) => {
         index: n.index,
       }));
 
-    const balance = accData.balance || 0; // в nanoTON
+    const balance = accData.balance || 0;
 
     res.json({
       receiver: RECEIVER,
@@ -46,6 +45,8 @@ app.post('/api/scan', async (req, res) => {
     res.status(500).json({ error: String(e) });
   }
 });
+
+app.get('/api/health', (req, res) => res.json({ ok: true }));
 
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, '0.0.0.0', () => console.log('scan api on :' + PORT));
