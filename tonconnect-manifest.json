@@ -1,5 +1,5 @@
 {
-  "url": "http://localhost:8080",
+  "url": "https://gift-spinner-pi.vercel.app",
   "name": "NFT Gifts",
-  "iconUrl": "http://localhost:8080/icon.png"
+  "iconUrl": "https://gift-spinner-pi.vercel.app/icon.png"
 }
