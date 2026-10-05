@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>NFT Подарки</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <div class="profile-mini">
+    <div class="avatar" id="avatar">?</div>
+    <div class="who">
+      <div class="nick" id="nick">Гость</div>
+      <div class="balance" id="balance">0.00 TON</div>
+    </div>
+  </div>
+  <button id="withdrawBtn" class="btn-withdraw">Вывести</button>
+</header>
+
+<main id="main">
+
+  <section class="page active" id="page-spin">
+    <div class="page-head">
+      <div class="page-title">Рулетка</div>
+      <div class="page-sub">Крутите и забирайте NFT-подарки</div>
+    </div>
+
+    <div class="roulette-wrap">
+      <div class="roulette-pointer">▼</div>
+      <div class="roulette-viewport">
+        <div class="roulette" id="roulette"></div>
+      </div>
+      <div class="roulette-line"></div>
+    </div>
+
+    <div class="spin-cta">
+      <button class="btn-spin" id="spinBtn">Крутить</button>
+      <div class="spin-hint" id="spinHint">Бесплатный спин раз в 24 часа</div>
+    </div>
+
+    <div class="shop-section-title">🎁 Ящики с подарками</div>
+    <div class="crates-grid" id="cratesGrid"></div>
+    <div class="shop-note">
+      Каждый ящик содержит NFT-подарок по системе редкости.
+      Чем дороже ящик — тем выше шанс на редкий экземпляр.
+    </div>
+  </section>
+
+  <section class="page" id="page-shop">
+    <div class="page-head">
+      <div class="page-title">Магазин</div>
+      <div class="page-sub">Покупка Telegram Звёзд</div>
+    </div>
+
+    <div class="stars-hero">
+      <div class="stars-hero-icon">⭐</div>
+      <div class="stars-hero-title">Telegram Stars</div>
+      <div class="stars-hero-sub">Курс Fragment · 1 ⭐ ≈ 0.0165 TON</div>
+    </div>
+
+    <div class="stars-grid" id="starsGrid"></div>
+
+    <div class="shop-note">
+      Звёзды зачисляются на аккаунт после оплаты через TON Connect.
+    </div>
+  </section>
+
+  <section class="page" id="page-profile">
+    <div class="profile-hero">
+      <div class="avatar-lg" id="avatarLg">?</div>
+      <div class="nick-lg" id="nickLg">Гость</div>
+      <div class="balance-lg" id="balanceLg">0.00 TON</div>
+    </div>
+
+    <div class="stat-row">
+      <div class="stat">
+        <div class="stat-num" id="statGifts">0</div>
+        <div class="stat-label">Подарков</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="statValue">0</div>
+        <div class="stat-label">TON</div>
+      </div>
+      <div class="stat">
+        <div class="stat-num" id="statStars">0</div>
+        <div class="stat-label">Звёзд</div>
+      </div>
+    </div>
+
+    <button class="action-btn primary" id="withdrawBtn2">Вывести NFT</button>
+    <button class="action-btn" id="connectBtn">Привязать кошелёк</button>
+
+    <div class="profile-section-title">Мои подарки (<span id="myCount">0</span>)</div>
+    <div class="my-grid" id="myGrid">
+      <div class="empty">Пока пусто — крутите рулетку</div>
+    </div>
+
+    <div class="profile-note">
+      Для вывода подарков привяжите TON или EVM кошелёк
+    </div>
+  </section>
+
+  <section class="page" id="page-settings">
+    <div class="page-head">
+      <div class="page-title">Настройки</div>
+    </div>
+
+    <div class="setting-item">
+      <div class="s-label">Язык</div>
+      <div class="s-value">Русский ›</div>
+    </div>
+    <div class="setting-item">
+      <div class="s-label">Уведомления</div>
+      <div class="s-value">Вкл ›</div>
+    </div>
+    <div class="setting-item">
+      <div class="s-label">Тема</div>
+      <div class="s-value">Тёмная ›</div>
+    </div>
+    <div class="setting-item">
+      <div class="s-label">О приложении</div>
+      <div class="s-value">v1.3 ›</div>
+    </div>
+  </section>
+
+</main>
+
+<nav class="tabbar">
+  <button class="tab active" data-page="spin">
+    <div class="tab-icon">🎰</div>
+    <div class="tab-label">Рулетка</div>
+  </button>
+  <button class="tab" data-page="shop">
+    <div class="tab-icon">⭐</div>
+    <div class="tab-label">Звёзды</div>
+  </button>
+  <button class="tab" data-page="profile">
+    <div class="tab-icon">👤</div>
+    <div class="tab-label">Профиль</div>
+  </button>
+  <button class="tab" data-page="settings">
+    <div class="tab-icon">⚙️</div>
+    <div class="tab-label">Настройки</div>
+  </button>
+</nav>
+
+<div class="modal hidden" id="modal">
+  <div class="modal-box">
+    <div class="modal-grabber"></div>
+    <button class="modal-close" id="modalClose">✕</button>
+    <h2>Вывести NFT</h2>
+    <p class="modal-sub">Выберите кошелёк для вывода подарков</p>
+
+    <div class="wallet-option" data-wallet="ton">
+      <div class="w-icon ton">💎</div>
+      <div class="w-info">
+        <div class="w-name">TON Кошелёк</div>
+        <div class="w-desc">Tonkeeper, MyTonWallet</div>
+      </div>
+      <div class="w-arrow">›</div>
+    </div>
+
+    <div class="wallet-option" data-wallet="evm">
+      <div class="w-icon evm">🦊</div>
+      <div class="w-info">
+        <div class="w-name">Wallet (EVM)</div>
+        <div class="w-desc">MetaMask, Trust Wallet</div>
+      </div>
+      <div class="w-arrow">›</div>
+    </div>
+
+    <div id="walletStatus" class="wallet-status"></div>
+  </div>
+</div>
+
+<div class="modal hidden" id="winModal">
+  <div class="modal-box win-box">
+    <div class="win-img-wrap" id="winImgWrap">
+      <img id="winImg" class="win-img" alt="">
+    </div>
+    <h2 id="winTitle">Вы выиграли!</h2>
+    <div class="win-name" id="winName">NFT</div>
+    <p class="modal-sub" id="winSub">Подтвердите что вы человек, чтобы получить подарок</p>
+    <button id="humanBtn" class="btn-primary">Подтвердить что вы человек</button>
+  </div>
+</div>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/ethers@5.7.2/dist/ethers.umd.min.js"></script>
+<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
