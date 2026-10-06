@@ -3,6 +3,46 @@ const CONFIG = {
   STARS_PER_TON: 60,
 };
 
+// ============ РУЧНОЙ СПИСОК КОШЕЛЬКОВ (обход CORS) ============
+const MANUAL_WALLETS_LIST = [
+  {
+    app_name: 'tonkeeper',
+    name: 'Tonkeeper',
+    image: 'https://tonkeeper.com/assets/tonconnect-icon.png',
+    about_url: 'https://tonkeeper.com',
+    universal_url: 'https://app.tonkeeper.com/ton-connect',
+    bridge: [
+      { type: 'sse', url: 'https://bridge.tonapi.io/bridge' },
+      { type: 'js',  url: 'https://bridge.tonapi.io/bridge' },
+    ],
+    platforms: ['ios', 'android', 'chrome', 'firefox', 'macos', 'windows', 'linux'],
+  },
+  {
+    app_name: 'telegram-wallet',
+    name: 'Wallet',
+    image: 'https://wallet.tg/images/logo-288.png',
+    about_url: 'https://wallet.tg',
+    universal_url: 'https://t.me/wallet?attach=wallet',
+    bridge: [
+      { type: 'sse', url: 'https://bridge.tonapi.io/bridge' },
+      { type: 'js',  url: 'https://bridge.tonapi.io/bridge' },
+    ],
+    platforms: ['ios', 'android', 'chrome', 'firefox', 'macos', 'windows', 'linux'],
+  },
+  {
+    app_name: 'mytonwallet',
+    name: 'MyTonWallet',
+    image: 'https://mytonwallet.io/icon-256.png',
+    about_url: 'https://mytonwallet.io',
+    universal_url: 'https://mytonwallet.io/ton-connect',
+    bridge: [
+      { type: 'sse', url: 'https://mytonwallet.io/bridge' },
+      { type: 'js',  url: 'https://mytonwallet.io/bridge' },
+    ],
+    platforms: ['ios', 'android', 'chrome', 'firefox', 'macos', 'windows', 'linux'],
+  },
+];
+
 // ============ NFT TIER-СПИСКИ ============
 const CHEAP_GIFTS = [
   { id:'bum',      name:'Bum NFT',     floor:0.7, rarity:'common', img:'https://nft.fragment.com/gift/bum-1000.large.jpg' },
@@ -178,7 +218,7 @@ function initTelegramUser() {
   nickLg.textContent = userProfile.nick;
 }
 
-// ============ ПРЕДИНИЦИАЛИЗАЦИЯ TON CONNECT ============
+// ============ TON CONNECT INIT (с ручным списком) ============
 function initTonConnect() {
   try {
     if (!window.TON_CONNECT_UI) {
@@ -189,8 +229,12 @@ function initTonConnect() {
       tonConnectUIInstance = new TON_CONNECT_UI.TonConnectUI({
         manifestUrl: window.location.origin + '/tonconnect-manifest.json',
         buttonRootId: null,
+        uiPreferences: { theme: 'DARK' },
+        walletsListConfiguration: {
+          includeWallets: MANUAL_WALLETS_LIST,
+        },
       });
-      console.log('TonConnect UI initialized');
+      console.log('TonConnect UI initialized with manual wallets:', tonConnectUIInstance.wallets);
     }
     return tonConnectUIInstance;
   } catch (e) {
@@ -444,7 +488,6 @@ document.querySelectorAll('.wallet-option').forEach(opt => {
 async function connectTon() {
   walletStatus.textContent = 'Открываем Tonkeeper...';
 
-  // ПРЕДИНИЦИАЛИЗАЦИЯ — ключевое, работает с первого раза
   const ui = initTonConnect();
   if (!ui) {
     walletStatus.textContent = 'TON Connect не загрузился, обновите страницу';
@@ -528,6 +571,5 @@ window.addEventListener('load', () => {
   renderStars();
   renderMyGifts();
   updateHeader();
-  // Прединициализация TonConnect
   setTimeout(initTonConnect, 500);
 });
